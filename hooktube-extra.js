@@ -1,33 +1,33 @@
 // ==UserScript==
 // @name         Hooktube Extra
-// @description  Hooktube/Invidio.us replacement of Youtube, with video source toggles.
+// @description  Hooktube and Invidio.us replacement of Youtube, with video source toggles.
 // @match        *://*.hooktube.com/*
 // @match        *://*.youtube.com/*
 // @match        *://*.youtu.be/*
 // @author       github.com/drylynch
-// @version      0.1.0
+// @version      1.5.0
 // @grant        none
 // @run-at       document-start
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAHFJREFUOE/NjtEJwCAMBd3DQTpFPztqR+t36gUFCaEa/elBiAm+I8kj50xJHWMQLshzHhKWbIXBCgptz6zvTzyB9vvCNJZ4grofS2xYh4gArOQ/ApiSeAJqKtzoJfSwAPikoZULegjDlmA5DP0FfjilF5ChqUcLsSa0AAAAAElFTkSuQmCC
 // ==/UserScript==
 
 /*
-
 todo
 
 - make t= and start= queries work as normal for invidious embeds
   - just put all queries onto invidious embed url!
 - maybe find a way to not have to squeeze switch btn code into an onclick?
 - maybe try to catch intra-youtube vid loading (event?)
-
+- allow hiding hooktube """news""" articles and homepage trending vids
 */
 
 
 (function() {
 
 // options
-const DEFAULT_INVIDIOUS_EMBED = true;  // will we try to embed invidious by default?
+const DEFAULT_INVIDIOUS_EMBED = false;  // will we try to embed invidious by default?
 const AUTOPLAY = true;  // will invidious vids autoplay on load?
+const HIDE_SHIT = true;  // hides the "articles" feed and 
 
 // non-options
 const PAGE = new URL(window.location);  // current page
