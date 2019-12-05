@@ -25,7 +25,7 @@ todo
 (function() {
 
 // options
-const DEFAULT_INVIDIOUS_EMBED = false;  // will we try to embed invidious by default?
+const DEFAULT_INVIDIOUS_EMBED = true;  // will we try to embed invidious by default?
 const AUTOPLAY = true;  // will invidious vids autoplay on load?
 const HIDE_SHIT = true;  // hides the "articles" feed and 
 
