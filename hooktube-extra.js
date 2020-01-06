@@ -5,7 +5,7 @@
 // @match        *://*.youtube.com/*
 // @match        *://*.youtu.be/*
 // @author       github.com/drylynch
-// @version      1.6.0
+// @version      0.1.2
 // @grant        none
 // @run-at       document-start
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAHFJREFUOE/NjtEJwCAMBd3DQTpFPztqR+t36gUFCaEa/elBiAm+I8kj50xJHWMQLshzHhKWbIXBCgptz6zvTzyB9vvCNJZ4grofS2xYh4gArOQ/ApiSeAJqKtzoJfSwAPikoZULegjDlmA5DP0FfjilF5ChqUcLsSa0AAAAAElFTkSuQmCC
@@ -21,13 +21,11 @@ todo
 - options menu for icons/autoplay?? kinda pointless atm
 */
 
-// ########################   ---   OPTIONS   ---   #############################
-//
-const DEFAULT_INVIDIOUS_EMBED = true;  // try to embed invidious by default?
+// options
+const DEFAULT_INVIDIOUS_EMBED = false;  // try to embed invidious by default?
 const JUST_ICONS = true;  // make the buttons below the video just icons, instead of text?
 const AUTOPLAY = true;  // autoplay invidious vids?
-//
-// ##############################################################################
+const REMOVE_SHIT = true;  // remove right-wing blog links?
 
 // non-options
 const THIS_URL = new URL(window.location);  // current page
@@ -43,16 +41,15 @@ const RE_HOOKTUBE = /^(www\.)?hooktube\.com$/i  // matches hooktube hostname, op
 
 // html for switch button, its onclick just inverts the embed cookie value (true / false), and refreshes the page. the 'get_cookie' function is the same as below
 const BTN_SWITCH_HTML = `<button type='button' class='btn btn-default mb-2' onclick="` +
-                            // start onclick
-                            `function get_cookie(a) {var b = document.cookie.match('(^|[^;]+)\\s*' + a + '\\s*=\\s*([^;]+)'); return b ? b.pop() : '';}` +
-                            `document.cookie = '` + EMBED_COOKIE + `' + '=' + (get_cookie('` + EMBED_COOKIE + `') === 'true' ? 'false' :'true');` +
-                            `location.reload();` +
-                            // end onclick
-                            `"><i class='fa fa-refresh'></i> Switch Embed</button>`;
+                        `function get_cookie(a) {var b = document.cookie.match('(^|[^;]+)\\s*' + a + '\\s*=\\s*([^;]+)'); return b ? b.pop() : '';}` +
+                        `document.cookie = '` + EMBED_COOKIE + `' + '=' + (get_cookie('` + EMBED_COOKIE + `') === 'true' ? 'false' :'true');` +
+                        `location.reload();` +
+                        `"><i class='fa fa-refresh'></i> Switch Embed</button>`;
+
 
 // ----------------------------------------------------------------------------------------------------
 
-/* replaces embedded youtube vid with invidious */
+/* replace embedded youtube vid with invidious */
 function embed_invidious() {
     let player = document.getElementById(PLAYER_ID);
     if (typeof(player) !== 'undefined' && player !== null) {  // check element exists first
@@ -64,7 +61,7 @@ function embed_invidious() {
     }
 }
 
-/* does a bunch of stuff to the buttons under the video */
+/* add embed switcher to buttons below videos, change buttons to just icons */
 function modify_buttons() {
     let btn_parent = document.getElementsByClassName('col')[0];
     if (typeof(btn_parent) !== 'undefined' && btn_parent !== null) {  // wait til parent exists
@@ -89,16 +86,33 @@ function modify_buttons() {
     }
 }
 
-/* gets cookie value (stolen from https://stackoverflow.com/questions/5639346) */
+/* set display:none on nodes with right-wing shit */
+function remove_shit() {
+    document.querySelector(".mr-auto").style.display = "none";  // blog links in navbar
+    if (window.location.href === 'https://hooktube.com/') {  // on homepage
+        nodes = document.querySelectorAll(".main > :not(:first-child)");  // trending videos and blog links
+        for (let i = 0; i < nodes.length; i++) {
+            nodes[i].style.display = "none";
+        }
+    } else {  // not homepage
+        document.getElementById('video-list-prom').style.display = 'none';  // ad in video column
+        document.getElementById('articles-feed').style.display = 'none';  // blog links
+    }
+}
+
+/* get cookie value (stolen from https://stackoverflow.com/questions/5639346) */
 function get_cookie(a) {
     var b = document.cookie.match('(^|[^;]+)\\s*' + a + '\\s*=\\s*([^;]+)'); return b ? b.pop() : '';
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-// youtube redirects
-// playlists & standalone embedded vids go to invidious
-// everything else to hooktube
+// remove shit on document-end (need to wait until html fully loaded)
+if (REMOVE_SHIT) {
+    document.addEventListener("DOMContentLoaded", remove_shit);
+}
+
+// youtube redirects: playlists & standalone embedded vids go to invidious,everything else to hooktube
 if (RE_YOUTUBE.test(THIS_URL.hostname)) {
     if (RE_INVIDIOUS_REDIRECT.test(THIS_URL.pathname)) {
         window.location = window.location.toString().replace(/youtube.com/, 'invidio.us');
