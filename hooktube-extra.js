@@ -47,7 +47,7 @@ const BTN_SWITCH_HTML = `<button type='button' class='btn btn-default mb-2' oncl
                         `"><i class='fa fa-refresh'></i> Switch Embed</button>`;
 
 // html for view channel button, goes to youtube without redirecting. gross but works.
-const BTN_VIEW_CHANNEL_ON_YOUTUBE_HTML = "<a href='" + ((THIS_URL.href.replace(/hooktube.com/, 'youtube.com')) + (THIS_URL.searchParams ? "&" : "?") + "hx_override=1") + "'><button type='button' class='btn btn-default mb-3'><i class='fa fa-youtube-play'></i> View Channel on YouTube</button></a>"
+const BTN_VIEW_CHANNEL_ON_YOUTUBE_HTML = "<a href='" + ((THIS_URL.href.replace(/hooktube.com/, 'youtube.com')) + (THIS_URL.search ? "&" : "?") + "hx_override=1") + "'><button type='button' class='btn btn-default mb-3'><i class='fa fa-youtube-play'></i> View Channel on YouTube</button></a>"
 
 
 // ----------------------------------------------------------------------------------------------------
