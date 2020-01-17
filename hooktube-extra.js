@@ -5,7 +5,7 @@
 // @match        *://*.youtube.com/*
 // @match        *://*.youtu.be/*
 // @author       github.com/drylynch
-// @version      0.1.2
+// @version      0.1.3
 // @grant        none
 // @run-at       document-start
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjExR/NCNwAAAHFJREFUOE/NjtEJwCAMBd3DQTpFPztqR+t36gUFCaEa/elBiAm+I8kj50xJHWMQLshzHhKWbIXBCgptz6zvTzyB9vvCNJZ4grofS2xYh4gArOQ/ApiSeAJqKtzoJfSwAPikoZULegjDlmA5DP0FfjilF5ChqUcLsSa0AAAAAElFTkSuQmCC
@@ -22,8 +22,8 @@ todo
 */
 
 // options
-const DEFAULT_INVIDIOUS_EMBED = false;  // try to embed invidious by default?
-const JUST_ICONS = true;  // make the buttons below the video just icons, instead of text?
+const DEFAULT_INVIDIOUS_EMBED = true;  // try to embed invidious by default?
+const JUST_ICONS = false;  // make the buttons below the video just icons, instead of text?
 const AUTOPLAY = true;  // autoplay invidious vids?
 const REMOVE_SHIT = true;  // remove right-wing blog links?
 
@@ -46,6 +46,9 @@ const BTN_SWITCH_HTML = `<button type='button' class='btn btn-default mb-2' oncl
                         `location.reload();` +
                         `"><i class='fa fa-refresh'></i> Switch Embed</button>`;
 
+// html for view channel button, goes to youtube without redirecting. gross but works.
+const BTN_VIEW_CHANNEL_ON_YOUTUBE_HTML = "<a href='" + ((THIS_URL.href.replace(/hooktube.com/, 'youtube.com')) + (THIS_URL.searchParams ? "&" : "?") + "hx_override=1") + "'><button type='button' class='btn btn-default mb-3'><i class='fa fa-youtube-play'></i> View Channel on YouTube</button></a>"
+
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -57,36 +60,42 @@ function embed_invidious() {
         vid_url = vid_url.replace(/youtube.com/, 'invidio.us');  // make it invidious
         vid_url = vid_url + (AUTOPLAY ? '?autoplay=1' : '');  // add optional autoplay
         player.src = vid_url;  // slot vid into player
+        player.focus();
         clearInterval(embed_loop);  // done
     }
 }
 
 /* add embed switcher to buttons below videos, change buttons to just icons */
-function modify_buttons() {
+function modify_video_page() {
     let btn_parent = document.getElementsByClassName('col')[0];
-    if (typeof(btn_parent) !== 'undefined' && btn_parent !== null) {  // wait til parent exists
-        btn_parent.insertAdjacentHTML('beforeend', BTN_SWITCH_HTML);  // pop in 'switch embed' btn
-        let btn_list = btn_parent.getElementsByTagName('button');  // none of the btms have ids or unique classes so we just gotta hard code it
-        let btn_yt = btn_list[6];  // 'watch on youtube' btn
-        btn_yt.parentElement.href = btn_yt.parentElement.href + '&' + OVERRIDE_QUERY + '=1';  // append our override query to 'watch on yt' btn
-        if (JUST_ICONS) {
-            let btn_dl = btn_list[0];  // 'download' btn
-            let btn_switch = btn_list[7];  // 'switch embed' btn
-            btn_yt.innerHTML = '';  // clear text from all btns
-            btn_dl.innerHTML = '';
-            btn_switch.innerHTML = '';
-            btn_yt.className = btn_yt.className + ' fa fa-youtube-play';  // add youtube play icon
-            btn_dl.className = btn_dl.className + ' fa fa-download';  // the child i tag inside this btn has been cleared, so give the btn itself the icon
-            btn_switch.className = btn_switch.className + ' fa fa-refresh';  // same situation as btn_dl
-            btn_yt.title = 'Watch on Youtube';  // add hover titles in place of labels
-            btn_dl.title = 'Download';
-            btn_switch.title = 'Switch Embed';
-        }
-        clearInterval(btn_loop);  // done
+    btn_parent.insertAdjacentHTML('beforeend', BTN_SWITCH_HTML);  // pop in 'switch embed' btn
+    let btn_list = btn_parent.getElementsByTagName('button');  // none of the btms have ids or unique classes so we just gotta hard code it
+    let btn_yt = btn_list[6];  // 'watch on youtube' btn
+    btn_yt.parentElement.href = btn_yt.parentElement.href + '&' + OVERRIDE_QUERY + '=1';  // append our override query to 'watch on yt' btn
+    if (JUST_ICONS) {
+      let btn_dl = btn_list[0];  // 'download' btn
+      let btn_switch = btn_list[7];  // 'switch embed' btn
+      btn_yt.innerHTML = '';  // clear text from all btns
+      btn_dl.innerHTML = '';
+      btn_switch.innerHTML = '';
+      btn_yt.className = btn_yt.className + ' fa fa-youtube-play';  // add youtube play icon
+      btn_dl.className = btn_dl.className + ' fa fa-download';  // the child i tag inside this btn has been cleared, so give the btn itself the icon
+      btn_switch.className = btn_switch.className + ' fa fa-refresh';  // same situation as btn_dl
+      btn_yt.title = 'Watch on Youtube';  // add hover titles in place of labels
+      btn_dl.title = 'Download';
+      btn_switch.title = 'Switch Embed';
     }
 }
 
-/* set display:none on nodes with right-wing shit */
+/* add 'view on youtube' to channel pages */
+function modify_channel_page() {
+    let channel_title = document.getElementById('generic-title');
+    channel_title.insertAdjacentHTML('afterend', BTN_VIEW_CHANNEL_ON_YOUTUBE_HTML);
+    channel_title.style.display = 'inline';  // keep title and button on same line: #generic-title is originally block
+    channel_title.style.marginRight = '1rem';  // not too close now
+}
+
+/* hide elements with right-wing shit */
 function remove_shit() {
     document.querySelector(".mr-auto").style.display = "none";  // blog links in navbar
     if (window.location.href === 'https://hooktube.com/') {  // on homepage
@@ -126,11 +135,14 @@ else if (RE_HOOKTUBE.test(THIS_URL.hostname)) {
     if (get_cookie(EMBED_COOKIE) === '') {  // cookie not set, set it to whatever's in the options
         document.cookie = EMBED_COOKIE + '=' + (DEFAULT_INVIDIOUS_EMBED ? 'true' : 'false');
     }
-    if (THIS_URL.pathname === '/watch') {
+    let pagename = THIS_URL.pathname.split('/')[1];
+    if (pagename === 'watch') {  // video page
         if (get_cookie(EMBED_COOKIE) === 'true') {
-            var embed_loop = setInterval(embed_invidious, INTERVAL_TIME);  // wait til iframe with yt vid has loaded, and replace it
+          var embed_loop = setInterval(embed_invidious, INTERVAL_TIME);  // wait til iframe with yt vid has loaded, and replace it
         }
-        var btn_loop = setInterval(modify_buttons, INTERVAL_TIME);  // always add the buttons to a vid page
+        document.addEventListener("DOMContentLoaded", modify_video_page);  // always modify video pages
+    } else if (pagename === 'channel' || pagename === 'user') {  // channel page
+        document.addEventListener("DOMContentLoaded", modify_channel_page);
     }
 }
 
